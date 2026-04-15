@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHARETEC ROI-Kalkulator – SharePLM</title>
+<meta name="description" content="Berechnen Sie Ihren ROI mit SHARETEC SharePLM und Microsoft Copilot – kostenloser Online-Kalkulator.">
+<meta property="og:title" content="SHARETEC ROI-Kalkulator">
+<meta property="og:description" content="Wie viel sparen Sie mit SharePLM? Jetzt berechnen.">
+<meta property="og:type" content="website">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, sans-serif;
+    background: #F0F4F8;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(30,39,97,0.10);
+    max-width: 820px;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .header {
+    background: #1E2761;
+    padding: 1.75rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .header-accent { width: 4px; height: 44px; background: #02C39A; border-radius: 2px; }
+  .header-logo { font-size: 24px; font-weight: 700; color: #fff; letter-spacing: 2px; }
+  .header-title { font-size: 16px; color: #02C39A; font-weight: 400; margin-top: 2px; }
+  .header-sub { font-size: 12px; color: #8899AA; margin-top: 3px; }
+
+  .body { padding: 2rem; }
+
+  h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1E2761;
+    margin-bottom: 1rem;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #028090;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .section { margin-bottom: 1.75rem; }
+
+  .row { display: flex; align-items: center; gap: 12px; margin-bottom: 13px; }
+  .row label { font-size: 13px; color: #555; min-width: 240px; }
+  .row input[type=range] { flex: 1; accent-color: #028090; cursor: pointer; }
+  .row select {
+    flex: 1; font-size: 13px; padding: 7px 10px;
+    border: 1px solid #CCC; border-radius: 8px;
+    background: #fff; color: #333; cursor: pointer; outline: none;
+  }
+  .row select:focus { border-color: #028090; }
+  .val { font-size: 13px; font-weight: 700; color: #1E2761; min-width: 100px; text-align: right; white-space: nowrap; }
+
+  .divider { border: none; border-top: 1px solid #EEF3F8; margin: 1.5rem 0; }
+
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #EEF3F8; border-radius: 10px; padding: 14px 16px; margin-bottom: 1rem;
+  }
+  .toggle-left .toggle-title { font-size: 14px; font-weight: 700; color: #1E2761; margin-bottom: 3px; }
+  .toggle-left .toggle-sub { font-size: 12px; color: #666; }
+
+  .switch { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider-sw {
+    position: absolute; inset: 0; background: #CCC;
+    border-radius: 26px; cursor: pointer; transition: background 0.2s;
+  }
+  .slider-sw:before {
+    content: ''; position: absolute; width: 20px; height: 20px;
+    left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s;
+  }
+  .switch input:checked + .slider-sw { background: #028090; }
+  .switch input:checked + .slider-sw:before { transform: translateX(20px); }
+
+  .copilot-box {
+    border-left: 4px solid #028090;
+    background: #F4FBFA;
+    padding: 16px;
+    margin-bottom: 1rem;
+  }
+  .copilot-box .row { margin-bottom: 10px; }
+  .copilot-box .row:last-of-type { margin-bottom: 0; }
+
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .tag {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    background: #E1F5EE; color: #085041; font-weight: 600;
+  }
+
+  .metrics {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem;
+  }
+  @media (max-width: 580px) { .metrics { grid-template-columns: repeat(2, 1fr); } }
+
+  .metric { background: #EEF3F8; border-radius: 10px; padding: 14px 12px; text-align: center; }
+  .metric .mlabel { font-size: 11px; color: #888; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .metric .mval { font-size: 19px; font-weight: 700; color: #1E2761; }
+  .metric .mval.pos { color: #0F6E56; }
+  .metric .mval.neg { color: #993C1D; }
+  .metric .msub { font-size: 11px; color: #AAA; margin-top: 3px; }
+
+  .breakdown { margin-bottom: 1.25rem; }
+  .brow { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
+  .brow-label { font-size: 12px; color: #666; min-width: 170px; }
+  .brow-bar { flex: 1; background: #EEF3F8; border-radius: 5px; height: 11px; overflow: hidden; }
+  .brow-fill { height: 100%; border-radius: 5px; transition: width 0.35s ease; }
+  .brow-val { font-size: 12px; font-weight: 700; color: #1E2761; min-width: 90px; text-align: right; }
+
+  .fazit {
+    border-left: 4px solid; padding: 14px 16px;
+    margin-top: 1rem; border-radius: 0;
+  }
+  .fazit.green { background: #E1F5EE; border-color: #1D9E75; }
+  .fazit.amber { background: #FAEEDA; border-color: #BA7517; }
+  .fazit.red   { background: #FCEBEB; border-color: #A32D2D; }
+  .fazit-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .fazit.green .fazit-title { color: #085041; }
+  .fazit.amber .fazit-title { color: #633806; }
+  .fazit.red   .fazit-title { color: #791F1F; }
+  .fazit-text { font-size: 13px; color: #555; line-height: 1.5; }
+
+  .note { font-size: 11px; color: #AAA; margin-top: 1.5rem; line-height: 1.7; }
+
+  .footer {
+    background: #1E2761; padding: 1rem 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .footer span { font-size: 12px; color: #8899AA; }
+  .footer strong { color: #02C39A; }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div class="header">
+    <div class="header-accent"></div>
+    <div>
+      <div class="header-logo">SHARETEC</div>
+      <div class="header-title">ROI-Kalkulator</div>
+      <div class="header-sub">SharePLM + Microsoft Copilot – Berechnen Sie Ihre Einsparungen</div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <div class="section">
+      <h3>Unternehmensdaten</h3>
+      <div class="row">
+        <label>Anzahl PDM-Nutzer</label>
+        <input type="range" min="1" max="200" value="10" step="1" id="nutzer" oninput="calc()">
+        <span class="val" id="nutzer-out">10</span>
+      </div>
+      <div class="row">
+        <label>Ø Stundenlohn (EUR)</label>
+        <input type="range" min="20" max="120" value="45" step="1" id="lohn" oninput="calc()">
+        <span class="val" id="lohn-out">45 €</span>
+      </div>
+      <div class="row">
+        <label>Std./Woche Datenverwaltung je MA</label>
+        <input type="range" min="1" max="20" value="5" step="1" id="stunden" oninput="calc()">
+        <span class="val" id="stunden-out">5 h</span>
+      </div>
+      <div class="row">
+        <label>Zeitersparnis durch SharePLM (%)</label>
+        <input type="range" min="10" max="80" value="40" step="5" id="ersparnis" oninput="calc()">
+        <span class="val" id="ersparnis-out">40 %</span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="section">
+      <h3>Lizenzmodell</h3>
+      <div class="row">
+        <label>Lizenztyp</label>
+        <select id="lizenz" onchange="calc()">
+          <option value="990">SHARETEC Viewer – EUR 990 / Jahr</option>
+          <option value="1490" selected>SHARETEC Professional – EUR 1.490 / Jahr</option>
+        </select>
+        <span class="val" id="lizenz-out">1.490 €</span>
+      </div>
+      <div class="row">
+        <label>Anzahl Lizenzen</label>
+        <input type="range" min="1" max="200" value="10" step="1" id="lizenzen" oninput="calc()">
+        <span class="val" id="lizenzen-out">10</span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="section">
+      <h3>Microsoft Copilot-Agent</h3>
+
+      <div class="toggle-row">
+        <div class="toggle-left">
+          <div class="toggle-title">Copilot-Agent aktivieren</div>
+          <div class="toggle-sub">KI-Assistent beschleunigt Suche, Auswertung & Kommunikation in SharePLM</div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="copilot-toggle" onchange="toggleCopilot()">
+          <span class="slider-sw"></span>
+        </label>
+      </div>
+
+      <div id="copilot-details" style="display:none;">
+        <div class="copilot-box">
+          <div class="row">
+            <label>Copilot-Lizenz / MA / Jahr (EUR)</label>
+            <input type="range" min="200" max="800" value="360" step="10" id="copilot-preis" oninput="calc()">
+            <span class="val" id="copilot-preis-out">360 €</span>
+          </div>
+          <div class="row">
+            <label>Std./Woche Copilot-Aufgaben je MA</label>
+            <input type="range" min="1" max="15" value="3" step="1" id="copilot-std" oninput="calc()">
+            <span class="val" id="copilot-std-out">3 h</span>
+          </div>
+          <div class="row">
+            <label>Effizienzgewinn durch Copilot (%)</label>
+            <input type="range" min="10" max="70" value="35" step="5" id="copilot-eff" oninput="calc()">
+            <span class="val" id="copilot-eff-out">35 %</span>
+          </div>
+          <div class="tags">
+            <span class="tag">Dokumentensuche</span>
+            <span class="tag">E-Mail-Zusammenfassung</span>
+            <span class="tag">Berichte erstellen</span>
+            <span class="tag">CAD-Daten auswerten</span>
+            <span class="tag">Teams-Protokolle</span>
+            <span class="tag">Outlook-Integration</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="mlabel">Lizenzkosten / Jahr</div>
+        <div class="mval" id="m-kosten">–</div>
+        <div class="msub" id="m-kosten-sub"></div>
+      </div>
+      <div class="metric">
+        <div class="mlabel">Einsparung / Jahr</div>
+        <div class="mval pos" id="m-einsparung">–</div>
+        <div class="msub" id="m-eins-sub"></div>
+      </div>
+      <div class="metric">
+        <div class="mlabel">ROI gesamt</div>
+        <div class="mval" id="m-roi">–</div>
+        <div class="msub" id="m-roi-sub"></div>
+      </div>
+      <div class="metric">
+        <div class="mlabel">Amortisation</div>
+        <div class="mval" id="m-amort">–</div>
+        <div class="msub">bis Break-Even</div>
+      </div>
+    </div>
+
+    <div class="breakdown">
+      <div class="brow">
+        <span class="brow-label">SharePLM-Lizenzkosten</span>
+        <div class="brow-bar"><div class="brow-fill" id="bar-pdm-k" style="width:0%;background:#E24B4A;"></div></div>
+        <span class="brow-val" id="bv-pdm-k">–</span>
+      </div>
+      <div class="brow" id="row-cop-k" style="display:none;">
+        <span class="brow-label">Copilot-Lizenzkosten</span>
+        <div class="brow-bar"><div class="brow-fill" id="bar-cop-k" style="width:0%;background:#BA7517;"></div></div>
+        <span class="brow-val" id="bv-cop-k">–</span>
+      </div>
+      <div class="brow">
+        <span class="brow-label">PDM-Zeitersparnis</span>
+        <div class="brow-bar"><div class="brow-fill" id="bar-pdm-e" style="width:0%;background:#1D9E75;"></div></div>
+        <span class="brow-val" id="bv-pdm-e">–</span>
+      </div>
+      <div class="brow" id="row-cop-e" style="display:none;">
+        <span class="brow-label">Copilot-Zeitersparnis</span>
+        <div class="brow-bar"><div class="brow-fill" id="bar-cop-e" style="width:0%;background:#028090;"></div></div>
+        <span class="brow-val" id="bv-cop-e">–</span>
+      </div>
+      <div class="brow">
+        <span class="brow-label">Netto-Gewinn</span>
+        <div class="brow-bar"><div class="brow-fill" id="bar-netto" style="width:0%;background:#185FA5;"></div></div>
+        <span class="brow-val" id="bv-netto">–</span>
+      </div>
+    </div>
+
+    <div id="fazit-wrap"></div>
+
+    <p class="note">
+      Berechnung: PDM-Einsparung = Nutzer × Std./Woche × 52 × Ersparnis% × Stundenlohn.<br>
+      Copilot-Einsparung = Nutzer × Copilot-Std./Woche × 52 × Effizienz% × Stundenlohn.<br>
+      Copilot-Kosten = Nutzer × Lizenzpreis/Jahr. Alle Angaben ohne Gewähr – dient als Orientierungshilfe.
+    </p>
+  </div>
+
+  <div class="footer">
+    <span><strong>SHARETEC</strong> · k.koray@sharetec.org</span>
+    <span>SharePLM · SaaS PDM-Lösung · 2026</span>
+  </div>
+
+</div>
+<script>
+function fmt(n) { return Math.round(n).toLocaleString('de-DE') + ' €'; }
+
+function toggleCopilot() {
+  const on = document.getElementById('copilot-toggle').checked;
+  document.getElementById('copilot-details').style.display = on ? 'block' : 'none';
+  document.getElementById('row-cop-k').style.display = on ? 'flex' : 'none';
+  document.getElementById('row-cop-e').style.display = on ? 'flex' : 'none';
+  calc();
+}
+
+function calc() {
+  const nutzer    = +document.getElementById('nutzer').value;
+  const lohn      = +document.getElementById('lohn').value;
+  const stunden   = +document.getElementById('stunden').value;
+  const ersparnis = +document.getElementById('ersparnis').value / 100;
+  const lizPreis  = +document.getElementById('lizenz').value;
+  const lizenzen  = +document.getElementById('lizenzen').value;
+  const copOn     = document.getElementById('copilot-toggle').checked;
+  const copPreis  = +document.getElementById('copilot-preis').value;
+  const copStd    = +document.getElementById('copilot-std').value;
+  const copEff    = +document.getElementById('copilot-eff').value / 100;
+
+  document.getElementById('nutzer-out').textContent       = nutzer;
+  document.getElementById('lohn-out').textContent         = lohn + ' €';
+  document.getElementById('stunden-out').textContent      = stunden + ' h';
+  document.getElementById('ersparnis-out').textContent    = Math.round(ersparnis * 100) + ' %';
+  document.getElementById('lizenz-out').textContent       = lizPreis.toLocaleString('de-DE') + ' €';
+  document.getElementById('lizenzen-out').textContent     = lizenzen;
+  document.getElementById('copilot-preis-out').textContent = copPreis + ' €';
+  document.getElementById('copilot-std-out').textContent  = copStd + ' h';
+  document.getElementById('copilot-eff-out').textContent  = Math.round(copEff * 100) + ' %';
+
+  const pdmKosten     = lizenzen * lizPreis;
+  const pdmEinsparung = nutzer * stunden * 52 * ersparnis * lohn;
+  const copKosten     = copOn ? nutzer * copPreis : 0;
+  const copEinsparung = copOn ? nutzer * copStd * 52 * copEff * lohn : 0;
+
+  const gesamtKosten     = pdmKosten + copKosten;
+  const gesamtEinsparung = pdmEinsparung + copEinsparung;
+  const netto            = gesamtEinsparung - gesamtKosten;
+  const roi              = gesamtKosten > 0 ? (netto / gesamtKosten) * 100 : 0;
+  const amort            = gesamtEinsparung > 0 ? gesamtKosten / gesamtEinsparung * 12 : 999;
+
+  document.getElementById('m-kosten').textContent      = fmt(gesamtKosten);
+  document.getElementById('m-kosten-sub').textContent  = copOn ? 'PDM + Copilot' : 'SharePLM Lizenzen';
+  document.getElementById('m-einsparung').textContent  = fmt(gesamtEinsparung);
+  document.getElementById('m-eins-sub').textContent    = copOn ? 'PDM + Copilot-Effekt' : 'PDM-Optimierung';
+
+  const roiEl = document.getElementById('m-roi');
+  roiEl.textContent = Math.round(roi) + ' %';
+  roiEl.className   = 'mval ' + (roi >= 0 ? 'pos' : 'neg');
+  document.getElementById('m-roi-sub').textContent = copOn ? 'inkl. Copilot-Boost' : 'ohne Copilot';
+
+  const amEl = document.getElementById('m-amort');
+  if (amort < 1) {
+    amEl.textContent = '< 1 Monat'; amEl.className = 'mval pos';
+  } else if (amort <= 12) {
+    amEl.textContent = Math.round(amort) + ' Monate'; amEl.className = 'mval pos';
+  } else {
+    amEl.textContent = (Math.round(amort / 12 * 10) / 10) + ' Jahre';
+    amEl.className   = 'mval ' + (amort < 24 ? 'pos' : 'neg');
+  }
+
+  const maxV = Math.max(pdmKosten, copKosten, pdmEinsparung, copEinsparung, Math.abs(netto), 1);
+  const pct  = v => Math.round(Math.max(v, 0) / maxV * 100) + '%';
+
+  document.getElementById('bar-pdm-k').style.width = pct(pdmKosten);
+  document.getElementById('bv-pdm-k').textContent  = fmt(pdmKosten);
+  document.getElementById('bar-cop-k').style.width = pct(copKosten);
+  document.getElementById('bv-cop-k').textContent  = fmt(copKosten);
+  document.getElementById('bar-pdm-e').style.width = pct(pdmEinsparung);
+  document.getElementById('bv-pdm-e').textContent  = fmt(pdmEinsparung);
+  document.getElementById('bar-cop-e').style.width = pct(copEinsparung);
+  document.getElementById('bv-cop-e').textContent  = fmt(copEinsparung);
+  document.getElementById('bar-netto').style.width = pct(netto);
+  document.getElementById('bv-netto').textContent  = fmt(netto);
+
+  const fazit = document.getElementById('fazit-wrap');
+  let cls, title, text;
+  if (roi >= 200) {
+    cls = 'green'; title = 'Exzellenter ROI';
+    text = copOn
+      ? 'SharePLM und Copilot ergeben eine starke Kombination – die KI-Agenten multiplizieren den Nutzen deutlich.'
+      : 'SharePLM amortisiert sich sehr schnell. Mit Copilot-Agenten liesse sich der ROI noch weiter steigern.';
+  } else if (roi >= 50) {
+    cls = 'green'; title = 'Guter ROI';
+    text = copOn
+      ? 'Die Kombination aus PDM-Struktur und Copilot-Effizienz zahlt sich klar aus.'
+      : 'SharePLM lohnt sich. Copilot-Agenten koennen den ROI zusaetzlich verbessern.';
+  } else if (roi >= 0) {
+    cls = 'amber'; title = 'Positiver ROI';
+    text = copOn
+      ? 'ROI positiv. Mehr Nutzer oder hoehere Copilot-Stunden steigern die Rentabilitaet weiter.'
+      : 'SharePLM rechnet sich. Copilot-Agenten aktivieren fuer deutlich hoehere Einsparungen.';
+  } else {
+    cls = 'red'; title = 'ROI negativ';
+    text = 'Nutzeranzahl oder Stundenaufwand erhoehen. Copilot-Agenten aktivieren um die Einsparungen deutlich zu steigern.';
+  }
+  fazit.innerHTML =
+    '<div class="fazit ' + cls + '">' +
+    '<div class="fazit-title">' + title + '</div>' +
+    '<div class="fazit-text">' + text + '</div></div>';
+}
+
+calc();
+</script>
+</body>
+</html>
